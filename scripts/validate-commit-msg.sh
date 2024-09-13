@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 commit_message=$(cat "$1")
