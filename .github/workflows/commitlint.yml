@@ -2,7 +2,7 @@ name: Commitlint
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [assigned, opened, synchronize, edited, reopened]
 
 jobs:
   lint-commits:
