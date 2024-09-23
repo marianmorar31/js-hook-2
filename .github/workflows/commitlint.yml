@@ -1,0 +1,40 @@
+name: Commitlint
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Commitlint with custom error message
+        run: |
+          # Fetch all commit messages from the pull request
+          commits=$(git log --format=%B origin/main..HEAD)
+          
+          # Define the correct commit message format
+          correct_format="<type>(TEAM-<jira-ticket-number>): <description>"
+          
+          # Loop through the commits and check each one with Commitlint
+          for commit in $commits; do
+            if ! echo "$commit" | npx commitlint; then
+              echo "Error: Invalid commit message format for commit: '$commit'"
+              echo "Expected commit message format:"
+              echo "  <type>(TEAM-<jira-ticket-number>): <description>"
+              echo "Example: feat(TEAM-1234): add login functionality"
+              exit 1
+            fi
+          done
