@@ -2,7 +2,7 @@ name: Commitlint
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [assigned, opened, synchronize, edited, reopened]
 
 jobs:
   lint-commits:
@@ -11,11 +11,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '16'
+
+      - name: Fetch main branch
+        run: git fetch origin main
 
       - name: Install dependencies
         run: npm install
@@ -23,18 +28,22 @@ jobs:
       - name: Run Commitlint with custom error message
         run: |
           # Fetch all commit messages from the pull request
-          commits=$(git log --format=%B origin/main..HEAD)
+          commit_messages=$(git log --format=%s origin/main..HEAD)
           
-          # Define the correct commit message format
-          correct_format="<type>(TEAM-<jira-ticket-number>): <description>"
-          
-          # Loop through the commits and check each one with Commitlint
-          for commit in $commits; do
-            if ! echo "$commit" | npx commitlint; then
-              echo "Error: Invalid commit message format for commit: '$commit'"
+          # Loop through commit messages and validate them
+          while IFS= read -r commit_message; do
+            # Skip merge commits
+            if [[ $commit_message == Merge* ]]; then
+              echo "Skipping merge commit: '$commit_message'"
+              continue
+            fi
+
+            # Run commitlint on the commit message
+            if ! echo "$commit_message" | npx commitlint; then
+              echo "Error: Invalid commit message format for commit: '$commit_message'"
               echo "Expected commit message format:"
               echo "  <type>(TEAM-<jira-ticket-number>): <description>"
               echo "Example: feat(TEAM-1234): add login functionality"
               exit 1
             fi
-          done
+          done <<< "$commit_messages"
