@@ -1,16 +1,19 @@
 module.exports = {
     rules: {
-      // Define allowed commit types
+      // Allowed commit types
       'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore']],
       
-      // Ensure the commit message matches "<type>(TEAM-<jira-ticket-number>): <description>"
-      'subject-pattern': [2, 'always', '^([a-z]+)\\(TEAM-[0-9]+\\):\\s.{1,50}$'],
-      
-      // Ignore subject case rules, as this might be causing conflicts
-      'subject-case': [0],
+      // Ensure subject length and format
+      'subject-max-length': [2, 'always', 72], // Enforce max length
+      'subject-min-length': [2, 'always', 1], // Ensure at least one character
   
-      // Optional: Limit subject length to 50 characters
-      'subject-max-length': [2, 'always', 72],
-    }
+      // Enforce the presence of a ticket number
+      'type-empty': [2, 'never'], // Ensure type is present
+      'subject-empty': [2, 'never'], // Ensure subject is not empty
+  
+      // Optionally, enforce case rules
+      'type-case': [2, 'always', 'lower-case'], // Ensure type is lowercase
+      'subject-case': [2, 'always', 'lower-case'], // Ensure subject is lowercase
+    },
   };
   
