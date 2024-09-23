@@ -12,7 +12,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          # Fetch all history and all branches, including main
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -36,6 +35,13 @@ jobs:
           
           # Loop through the commits and check each one with Commitlint
           for commit in $commits; do
+            # Skip merge commits
+            if [[ $commit == Merge* ]]; then
+              echo "Skipping merge commit: '$commit'"
+              continue
+            fi
+
+            # Validate commit message format
             if ! echo "$commit" | npx commitlint; then
               echo "Error: Invalid commit message format for commit: '$commit'"
               echo "Expected commit message format:"
