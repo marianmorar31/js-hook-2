@@ -2,7 +2,7 @@ name: Commitlint
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [assigned, opened, synchronize, edited, reopened]
 
 jobs:
   lint-commits:
@@ -28,25 +28,25 @@ jobs:
       - name: Run Commitlint with custom error message
         run: |
           # Fetch all commit messages from the pull request
-          commits=$(git log --format=%B origin/main..HEAD)
+          commit_messages=$(git log --format=%s origin/main..HEAD)
           
           # Define the correct commit message format
           correct_format="<type>(TEAM-<jira-ticket-number>): <description>"
           
-          # Loop through the commits and check each one with Commitlint
-          for commit in $commits; do
+          # Loop through the commit messages and check each one with Commitlint
+          while IFS= read -r commit_message; do
             # Skip merge commits
-            if [[ $commit == Merge* ]]; then
-              echo "Skipping merge commit: '$commit'"
+            if [[ $commit_message == Merge* ]]; then
+              echo "Skipping merge commit: '$commit_message'"
               continue
             fi
 
             # Validate commit message format
-            if ! echo "$commit" | npx commitlint; then
-              echo "Error: Invalid commit message format for commit: '$commit'"
+            if ! echo "$commit_message" | npx commitlint; then
+              echo "Error: Invalid commit message format for commit: '$commit_message'"
               echo "Expected commit message format:"
               echo "  <type>(TEAM-<jira-ticket-number>): <description>"
               echo "Example: feat(TEAM-1234): add login functionality"
               exit 1
             fi
-          done
+          done <<< "$commit_messages"
